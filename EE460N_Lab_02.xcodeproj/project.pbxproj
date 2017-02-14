@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		0B87EC0B1E539CB00071A3D6 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 0B87EC0A1E539CB00071A3D6 /* main.c */; };
+		0B87EC121E539E230071A3D6 /* lc3bsim2.c in Sources */ = {isa = PBXBuildFile; fileRef = 0B87EC111E539E230071A3D6 /* lc3bsim2.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -25,6 +26,7 @@
 /* Begin PBXFileReference section */
 		0B87EC071E539CB00071A3D6 /* EE460N_Lab_02 */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = EE460N_Lab_02; sourceTree = BUILT_PRODUCTS_DIR; };
 		0B87EC0A1E539CB00071A3D6 /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
+		0B87EC111E539E230071A3D6 /* lc3bsim2.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = lc3bsim2.c; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -58,6 +60,7 @@
 			isa = PBXGroup;
 			children = (
 				0B87EC0A1E539CB00071A3D6 /* main.c */,
+				0B87EC111E539E230071A3D6 /* lc3bsim2.c */,
 			);
 			path = EE460N_Lab_02;
 			sourceTree = "<group>";
@@ -119,6 +122,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				0B87EC121E539E230071A3D6 /* lc3bsim2.c in Sources */,
 				0B87EC0B1E539CB00071A3D6 /* main.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
