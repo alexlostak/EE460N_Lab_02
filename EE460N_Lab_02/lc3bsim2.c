@@ -421,6 +421,76 @@ int main(int argc, char *argv[]) {
 
 /***************************************************************/
 
+/***************************************************************/
+/* 
+ Helper Functions
+ */
+
+/***************************************************************/
+
+
+
+
+
+uint32_t sext(int bitlength, uint32_t num) {
+    uint32_t sextNum;
+    uint32_t sign;
+    uint16_t ffff;
+    sextNum = 0;
+    sign = num & (1 << (bitlength - 1));
+    ffff = 0xFFFF;
+    if (sign) {
+        ffff = ffff << (bitlength - 1);
+        sextNum = ffff | num;
+    } else {
+        sextNum = num;
+    }
+    return sextNum;
+}
+
+void str_mem(uint32_t strValue, uint32_t addr) {
+    uint32_t leastSigValue;
+    uint32_t mostSigValue;
+    leastSigValue = 0;
+    mostSigValue = 0;
+    leastSigValue = strValue & 0x00FF;
+    mostSigValue = (strValue >> 8) & 0x00FF;
+    MEMORY[addr/2][0] = leastSigValue;
+    MEMORY[addr/2][1] = mostSigValue;
+    return;
+}
+
+uint32_t ld_mem(uint32_t addr) {
+    uint32_t leastSigValue;
+    uint32_t mostSigValue;
+    uint32_t returnValue;
+    leastSigValue = MEMORY[addr/2][0];
+    mostSigValue = MEMORY[addr/2][1];
+    returnValue = 0;
+    returnValue = (mostSigValue << 8) | leastSigValue;
+    return returnValue;
+}
+
+
+void mem_test() {
+    int ld;
+    int strld;
+    ld = ld_mem(0x3000);
+    str_mem(12, 0x4000);
+    strld = ld_mem(0x4000);
+    printf("ld: %x\n strld: %d\n", ld, strld);
+    return;
+}
+
+/***************************************************************/
+/*
+ Opcode Functions
+ */
+
+/***************************************************************/
+
+
+
 void add(){
     
 }
@@ -488,6 +558,7 @@ void process_instruction(){
    */
     int pc = CURRENT_LATCHES.PC;
     uint16_t opCode = MEMORY[(pc)/2][1] >> 4;
+    
     switch(opCode) {
         case ADD :
             add();
