@@ -472,6 +472,24 @@ uint32_t ld_mem(uint32_t addr) {
 }
 
 
+uint32_t create_instr(int pc) {
+    uint32_t instr;
+    uint32_t leastSigInstr;
+    uint32_t mostSigInstr;
+    leastSigInstr = MEMORY[pc/2] [0];
+    mostSigInstr = MEMORY[pc/2] [1];
+    instr = mostSigInstr << 8;
+    instr = instr | leastSigInstr;
+    return instr;
+}
+
+/***************************************************************/
+/*
+ Helper Test Functions
+ */
+
+/***************************************************************/
+
 void mem_test() {
     int ld;
     int strld;
@@ -479,6 +497,12 @@ void mem_test() {
     str_mem(12, 0x4000);
     strld = ld_mem(0x4000);
     printf("ld: %x\n strld: %d\n", ld, strld);
+    return;
+}
+
+void create_instr_test(int pc) {
+    uint32_t testInstr = create_instr(pc);
+    printf("%x\n", testInstr);
     return;
 }
 
@@ -558,7 +582,7 @@ void process_instruction(){
    */
     int pc = CURRENT_LATCHES.PC;
     uint16_t opCode = MEMORY[(pc)/2][1] >> 4;
-    
+    create_instr_test(pc);
     switch(opCode) {
         case ADD :
             add();
