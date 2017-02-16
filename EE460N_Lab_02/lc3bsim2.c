@@ -35,6 +35,13 @@
 
 void process_instruction();
 
+/***********************/
+/* Our instructions */
+/***********************/
+enum {
+    BR, ADD, LDB, STB, JSR, AND, LDW, STW, RTI, XOR, NOP, NOP1, JMP, SHF, LEA, TRAP
+};
+
 /***************************************************************/
 /* A couple of useful definitions.                             */
 /***************************************************************/
@@ -327,8 +334,13 @@ void load_program(char *program_filename) {
     }
 
     /* Write the word to memory array. */
+ /*     printf("program base is %x and ii is %d and word is %x\n", program_base, ii, word);
+     */
     MEMORY[program_base + ii][0] = word & 0x00FF;
     MEMORY[program_base + ii][1] = (word >> 8) & 0x00FF;
+   /*   printf("memory[%x][0] = %x\n", program_base + ii, MEMORY[program_base + ii][0] );
+      printf("memory[%x][1] = %x\n", program_base + ii, MEMORY[program_base + ii][1] );
+    */
     ii++;
   }
 
@@ -341,7 +353,7 @@ void load_program(char *program_filename) {
 /*                                                          */
 /* Procedure : initialize                                   */
 /*                                                          */
-/* Purpose   : Load machine language program                */ 
+/* Purpose   : Load machine language program                */
 /*             and set up initial state of the machine.     */
 /*                                                          */
 /************************************************************/
@@ -406,7 +418,61 @@ int main(int argc, char *argv[]) {
 
 /***************************************************************/
 
+void add(){
+    
+}
 
+void and(){
+    
+}
+
+void br(){
+    
+}
+
+void jmp(){
+    
+}
+
+void jsr(){
+    
+}
+
+void ldb(){
+    
+}
+
+void ldw(){
+    
+}
+
+void lea(){
+    
+}
+
+void rti(){
+    
+}
+
+void shf(){
+    
+}
+
+void stb(){
+    
+}
+
+void stw(){
+    
+}
+
+void trap(){
+    NEXT_LATCHES.PC = 0;
+}
+
+void xor(){
+    
+}
 
 void process_instruction(){
   /*  function: process_instruction
@@ -417,7 +483,37 @@ void process_instruction(){
    *       -Execute
    *       -Update NEXT_LATCHES
    */
-    printf("hello world\n");
-    NEXT_LATCHES.PC = 0;
-
+    
+    int pc = CURRENT_LATCHES.PC;
+    uint16_t opCode = MEMORY[(pc)/2][1] >> 4;
+    switch(opCode) {
+        case ADD :
+            add();
+        case AND :
+            and();
+        case BR :
+            br();
+        case JMP :
+            jmp();
+        case JSR :
+            jsr();
+        case LDB :
+            ldb();
+        case LDW :
+            ldw();
+        case LEA :
+            lea();
+        case RTI :
+            rti();
+        case SHF :
+            shf();
+        case STB :
+            stb();
+        case STW :
+            stw();
+        case TRAP :
+            trap();
+        case XOR :
+            xor();
+    }
 }
