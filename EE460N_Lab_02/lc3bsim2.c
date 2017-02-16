@@ -310,8 +310,11 @@ void load_program(char *program_filename) {
   }
 
   /* Read in the program. */
-  if (fscanf(prog, "%x\n", &word) != EOF)
+    if (fscanf(prog, "%x\n", &word) != EOF) {
+        printf("%d\n", word);
     program_base = word >> 1;
+        printf("program_base: %d\n", program_base);
+}
   else {
     printf("Error: Program file is empty\n");
     exit(-1);
@@ -419,5 +422,7 @@ void process_instruction(){
    */
     printf("hello world\n");
     NEXT_LATCHES.PC = 0;
+    printf("%d\n", CURRENT_LATCHES.PC);
+    
 
 }
