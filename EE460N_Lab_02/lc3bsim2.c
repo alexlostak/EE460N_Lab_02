@@ -482,6 +482,25 @@ uint32_t create_instr(int pc) {
     instr = instr | leastSigInstr;
     return instr;
 }
+/*
+ NOT READY YET
+ */
+uint32_t get_value(uint32_t instr, int highBit, int lowBit) {
+    uint32_t value = 0;
+    uint32_t valueLength = highBit - lowBit + 1;
+    uint32_t highGap;
+    uint32_t lowGap;
+    uint32_t bigGap;
+    value = instr;
+    lowGap = lowBit;
+    highGap = 15 - highBit;
+    value = value >> (lowGap -1);
+    printf("Low gap gone: %x\n", value);
+    bigGap = highGap + lowGap;
+    value = value >> bigGap;
+    return value;
+}
+
 
 /***************************************************************/
 /*
@@ -506,6 +525,14 @@ void create_instr_test(int pc) {
     return;
 }
 
+void get_value_test(uint32_t instr) {
+    uint32_t testVal;
+    testVal = get_value(instr, 11, 9);
+    printf("%x\n", instr);
+    printf("%d\n", testVal);
+    return;
+}
+
 /***************************************************************/
 /*
  Opcode Functions
@@ -515,7 +542,13 @@ void create_instr_test(int pc) {
 
 
 
-void add(){
+void add(uint32_t instr){
+    //determine dr
+        //check bits 11 9
+    //determine sr1
+        //check bits 8 6
+    //determine imm5 or sr2
+        //check
     
 }
 
@@ -582,10 +615,11 @@ void process_instruction(){
    */
     int pc = CURRENT_LATCHES.PC;
     uint16_t opCode = MEMORY[(pc)/2][1] >> 4;
-    create_instr_test(pc);
+    uint32_t instr = create_instr(pc);
+    get_value_test(instr);
     switch(opCode) {
         case ADD :
-            add();
+            add(instr);
         case AND :
             and();
         case BR :
