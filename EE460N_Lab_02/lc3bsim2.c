@@ -530,6 +530,28 @@ uint32_t get_boffset6(uint32_t instr) {
     return value;
 }
 
+uint32_t get_pcoffset9(uint32_t instr) {
+    uint32_t value;
+    uint32_t regAnd = 0x01FF;
+    value = instr & regAnd;
+    return value;
+}
+
+uint32_t get_trapvector8(uint32_t instr) {
+    uint32_t value;
+    uint32_t regAnd = 0x00FF;
+    value = instr & regAnd;
+    return value;
+}
+
+uint32_t get_amount4(uint32_t instr) {
+    uint32_t value;
+    uint32_t regAnd = 0x000F;
+    value = instr & regAnd;
+    return value;
+}
+
+
 /***************************************************************/
 /*
  Helper Test Functions
