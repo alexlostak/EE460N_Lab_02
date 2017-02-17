@@ -482,24 +482,6 @@ uint32_t create_instr(int pc) {
     instr = instr | leastSigInstr;
     return instr;
 }
-/*
- NOT READY YET
- */
-uint32_t get_value(uint32_t instr, int highBit, int lowBit) {
-    uint32_t value = 0;
-    uint32_t valueLength = highBit - lowBit + 1;
-    uint32_t highGap;
-    uint32_t lowGap;
-    uint32_t bigGap;
-    value = instr;
-    lowGap = lowBit;
-    highGap = 15 - highBit;
-    value = value >> (lowGap -1);
-    printf("Low gap gone: %x\n", value);
-    bigGap = highGap + lowGap;
-    value = value >> bigGap;
-    return value;
-}
 
 uint32_t get_dr1(uint32_t instr) {
     uint32_t value;
@@ -521,6 +503,30 @@ uint32_t get_sr2(uint32_t instr) {
     uint32_t value;
     uint32_t regAnd = 0x007;
     value = instr & regAnd;
+    return value;
+}
+
+uint32_t get_imm5(uint32_t instr) {
+    uint32_t value;
+    uint32_t regAnd = 0x001F;
+    value = instr & regAnd;
+    return value;
+}
+
+uint32_t get_baseR(uint32_t instr) {
+    uint32_t value = get_sr1(instr);
+    return value;
+}
+
+uint32_t get_offset6(uint32_t instr) {
+    uint32_t value;
+    uint32_t regAnd = 0x003F;
+    value = instr & regAnd;
+    return value;
+}
+
+uint32_t get_boffset6(uint32_t instr) {
+    uint32_t value = get_offset6(instr);
     return value;
 }
 
@@ -566,6 +572,14 @@ void get_sr1_test(uint32_t instr) {
 void get_sr2_test(uint32_t instr) {
     uint32_t testVal;
     testVal = get_sr2(instr);
+    printf("%x\n", instr);
+    printf("%d\n", testVal);
+    return;
+}
+
+void get_imm5_test(uint32_t instr) {
+    uint32_t testVal;
+    testVal = get_imm5(instr);
     printf("%x\n", instr);
     printf("%d\n", testVal);
     return;
@@ -654,7 +668,7 @@ void process_instruction(){
     int pc = CURRENT_LATCHES.PC;
     uint16_t opCode = MEMORY[(pc)/2][1] >> 4;
     uint32_t instr = create_instr(pc);
-    get_sr2_test(instr);
+    get_imm5_test(instr);
     switch(opCode) {
         case ADD :
             add(instr);
