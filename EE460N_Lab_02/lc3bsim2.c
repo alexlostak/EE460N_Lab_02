@@ -428,10 +428,6 @@ int main(int argc, char *argv[]) {
 
 /***************************************************************/
 
-
-
-
-
 uint32_t sext(int bitlength, uint32_t num) {
     uint32_t sextNum;
     uint32_t sign;
@@ -551,6 +547,45 @@ uint32_t get_amount4(uint32_t instr) {
     return value;
 }
 
+int get_a(uint32_t instr) {
+    uint32_t value;
+    uint32_t regAnd = 0x0020;
+    value = instr & regAnd;
+    value = value >> 5;
+    return value;
+}
+
+void set_new_cc(uint32_t newValue) {
+    uint32_t mostSigBitAnd = 0x8000;
+    uint32_t result;
+    if (newValue == 0) {
+        CURRENT_LATCHES.N = 0;
+        CURRENT_LATCHES.Z = 1;
+        CURRENT_LATCHES.P = 0;
+    }
+    result = newValue & mostSigBitAnd;
+    if (result) {
+        CURRENT_LATCHES.N = 1;
+        CURRENT_LATCHES.Z = 0;
+        CURRENT_LATCHES.P = 0;
+    } else {
+        CURRENT_LATCHES.N = 0;
+        CURRENT_LATCHES.Z = 0;
+        CURRENT_LATCHES.P = 1;
+    }
+    return;
+}
+void update_next_latches(void) {
+    int i;
+    NEXT_LATCHES.N = CURRENT_LATCHES.N;
+    NEXT_LATCHES.Z = CURRENT_LATCHES.Z;
+    NEXT_LATCHES.P = CURRENT_LATCHES.P;
+    NEXT_LATCHES.PC = CURRENT_LATCHES.PC;
+    for (i = 0; i < 8; i++) {
+        NEXT_LATCHES.REGS[i] = CURRENT_LATCHES.REGS[i];
+    }
+    return;
+}
 
 /***************************************************************/
 /*
@@ -607,6 +642,17 @@ void get_imm5_test(uint32_t instr) {
     return;
 }
 
+void get_a_test(uint32_t instr) {
+    int testVal;
+    testVal = get_a(instr);
+    printf("%x\n", instr);
+    printf("%d\n", testVal);
+    return;
+    
+}
+
+
+
 /***************************************************************/
 /*
  Opcode Functions
@@ -614,16 +660,30 @@ void get_imm5_test(uint32_t instr) {
 
 /***************************************************************/
 
-
-
 void add(uint32_t instr){
-    //determine dr
-        //check bits 11 9
-    //determine sr1
-        //check bits 8 6
-    //determine imm5 or sr2
-        //check
-    
+    uint32_t dr;
+    uint32_t drValue;
+    uint32_t sr1;
+    uint32_t sr1Value;
+    uint32_t operand2;
+    uint32_t operand2Value;
+    int a;
+    dr = get_dr1(instr);
+    sr1 = get_sr1(instr);
+    sr1Value = CURRENT_LATCHES.REGS[sr1];
+    a = get_a(instr);
+    if (a) {
+        operand2 = get_imm5(instr);
+        operand2Value = operand2;
+        operand2Value = sext(5, operand2Value);
+    } else {
+        operand2 = get_sr2(instr);
+        operand2Value = CURRENT_LATCHES.REGS[operand2];
+    }
+    drValue = sr1Value + operand2Value;
+    CURRENT_LATCHES.REGS[dr] = drValue;
+    set_new_cc(drValue);
+    return;
 }
 
 void and(){
@@ -678,6 +738,50 @@ void xor(){
     
 }
 
+/***************************************************************/
+/*
+ Opcode Test Functions
+ */
+
+/***************************************************************/
+
+
+
+void print_latches(void) {
+    int i = 0;
+    printf("PC = %x\n", CURRENT_LATCHES.PC);
+    printf("N-Z-P = %d-%d-%d\n", CURRENT_LATCHES.N, CURRENT_LATCHES.Z, CURRENT_LATCHES.P);
+    for (i = 0; i < 8; i++) {
+        printf("R%d = %x (%d)\n", i, CURRENT_LATCHES.REGS[i], CURRENT_LATCHES.REGS[i]);
+    }
+}
+
+void print_current_latches(void) {
+    printf("-----Current Latch----\n");
+    print_latches();
+    printf("----------------------\n");
+}
+
+void print_next_latches(void) {
+    printf("-----Next Latch----\n");
+    print_latches();
+    printf("----------------------\n");
+}
+
+void add_test(uint32_t instr) {
+    print_current_latches();
+    add(instr);
+    print_next_latches();
+    
+}
+
+/***************************************************************/
+/*
+ Processing Instruction
+ */
+
+/***************************************************************/
+
 void process_instruction(){
   /*  function: process_instruction
    *  
@@ -690,7 +794,8 @@ void process_instruction(){
     int pc = CURRENT_LATCHES.PC;
     uint16_t opCode = MEMORY[(pc)/2][1] >> 4;
     uint32_t instr = create_instr(pc);
-    get_imm5_test(instr);
+    CURRENT_LATCHES.PC += 2;
+    
     switch(opCode) {
         case ADD :
             add(instr);
@@ -721,4 +826,6 @@ void process_instruction(){
         case XOR :
             xor();
     }
+    //copy over to next latch
+    update_next_latches();
 }
