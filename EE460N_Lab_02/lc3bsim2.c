@@ -501,6 +501,28 @@ uint32_t get_value(uint32_t instr, int highBit, int lowBit) {
     return value;
 }
 
+uint32_t get_dr1(uint32_t instr) {
+    uint32_t value;
+    uint32_t regAnd = 0x0E00;
+    value = instr & regAnd;
+    value = value >> 9;
+    return value;
+}
+
+uint32_t get_sr1(uint32_t instr) {
+    uint32_t value;
+    uint32_t regAnd = 0x01C0;
+    value = instr & regAnd;
+    value = value >> 6;
+    return value;
+}
+
+uint32_t get_sr2(uint32_t instr) {
+    uint32_t value;
+    uint32_t regAnd = 0x007;
+    value = instr & regAnd;
+    return value;
+}
 
 /***************************************************************/
 /*
@@ -525,9 +547,25 @@ void create_instr_test(int pc) {
     return;
 }
 
-void get_value_test(uint32_t instr) {
+void get_dr1_test(uint32_t instr) {
     uint32_t testVal;
-    testVal = get_value(instr, 11, 9);
+    testVal = get_dr1(instr);
+    printf("%x\n", instr);
+    printf("%d\n", testVal);
+    return;
+}
+
+void get_sr1_test(uint32_t instr) {
+    uint32_t testVal;
+    testVal = get_sr1(instr);
+    printf("%x\n", instr);
+    printf("%d\n", testVal);
+    return;
+}
+
+void get_sr2_test(uint32_t instr) {
+    uint32_t testVal;
+    testVal = get_sr2(instr);
     printf("%x\n", instr);
     printf("%d\n", testVal);
     return;
@@ -616,7 +654,7 @@ void process_instruction(){
     int pc = CURRENT_LATCHES.PC;
     uint16_t opCode = MEMORY[(pc)/2][1] >> 4;
     uint32_t instr = create_instr(pc);
-    get_value_test(instr);
+    get_sr2_test(instr);
     switch(opCode) {
         case ADD :
             add(instr);
