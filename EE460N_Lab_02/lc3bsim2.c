@@ -38,9 +38,21 @@ void process_instruction();
 /***********************/
 /* Our instructions */
 /***********************/
-enum {
-    BR, ADD, LDB, STB, JSR, AND, LDW, STW, RTI, XOR, NOP, NOP1, JMP, SHF, LEA, TRAP
-};
+
+#define BR 0
+#define ADD 1
+#define LDB 2
+#define STB 3
+#define JSR 4
+#define AND 5
+#define LDW 6
+#define STW 7
+#define RTI 8
+#define XOR 9
+#define JMP 12
+#define SHF 13
+#define LEA 14
+#define TRAP 15
 
 /***************************************************************/
 /* A couple of useful definitions.                             */
@@ -737,6 +749,7 @@ void add(uint32_t instr){
     drValue = sr1Value + operand2Value;
     CURRENT_LATCHES.REGS[dr] = drValue;
     set_new_cc(drValue);
+    printf("printing pc in add = %x\n", CURRENT_LATCHES.PC);
     return;
 }
 
@@ -973,13 +986,12 @@ void print_latches(void) {
 void print_current_latches(void) {
     printf("-----Current Latch----\n");
     print_latches();
-    printf("----------------------\n");
 }
 
 void print_next_latches(void) {
     printf("-----Next Latch----\n");
     print_latches();
-    printf("----------------------\n");
+    printf("----------------------\n\n");
 }
 
 void add_test(uint32_t instr) {
@@ -1005,37 +1017,65 @@ void process_instruction(){
    *       -Update NEXT_LATCHES
    */
     int pc = CURRENT_LATCHES.PC;
-    uint16_t opCode = MEMORY[(pc)/2][1] >> 4;
+    uint32_t opCode = MEMORY[(pc)/2][1] >> 4;
+    printf("MEMORY[(pc)/2][1] = %d\n", MEMORY[(pc)/2][1]);
     uint32_t instr = create_instr(pc);
-    CURRENT_LATCHES.PC += 2;
     print_current_latches();
+    CURRENT_LATCHES.PC += 2;
+    printf("opCode is %d\n", opCode);
     switch(opCode) {
         case ADD :
+            printf("case add\n");
             add(instr);
+            break;
         case AND :
+            printf("case and\n");
             and(instr);
+            break;
         case BR :
+            printf("case br\n");
             br(instr);
+            break;
         case JMP :
+            printf("case jmp\n");
             jmp(instr);
+            break;
         case JSR :
+            printf("case jsr\n");
             jsr(instr);
+            break;
         case LDB :
+            printf("case ldb\n");
             ldb(instr);
+            break;
         case LDW :
+            printf("case ldw\n");
             ldw(instr);
+            break;
         case LEA :
+            printf("case lea\n");
             lea(instr);
+            break;
         case SHF :
+            printf("case shf\n");
             shf(instr);
+            break;
         case STB :
+            printf("case stb\n");
             stb(instr);
+            break;
         case STW :
+            printf("case stw\n");
             stw(instr);
+            break;
         case TRAP :
+            printf("case trap\n");
             trap(instr);
+            break;
         case XOR :
+            printf("case xor\n");
             xor(instr);
+            break;
     }
     print_next_latches();
     update_next_latches();
