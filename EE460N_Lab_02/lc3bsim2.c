@@ -587,6 +587,61 @@ void update_next_latches(void) {
     return;
 }
 
+int check_n_bit(uint32_t instr) {
+    uint32_t value;
+    uint32_t regAnd = 0x0800;
+    value = instr & regAnd;
+    if (value) {
+        return 1;
+    }
+    return 0;
+}
+
+int check_z_bit(uint32_t instr) {
+    uint32_t value;
+    uint32_t regAnd = 0x0400;
+    value = instr & regAnd;
+    if (value) {
+        return 1;
+    }
+    return 0;
+}
+
+int check_p_bit(uint32_t instr) {
+    uint32_t value;
+    uint32_t regAnd = 0x0200;
+    value = instr & regAnd;
+    if (value) {
+        return 1;
+    }
+    return 0;
+}
+
+uint32_t create_word(uint32_t memAddress) {
+    uint32_t word;
+    uint32_t leastSigByte;
+    uint32_t mostSigByte;
+    leastSigByte = MEMORY[memAddress/2] [0];
+    mostSigByte = MEMORY[memAddress/2] [1];
+    word = mostSigByte << 8;
+    word = word | leastSigByte;
+    return word;
+}
+
+uint32_t get_least_sig_byte(uint32_t word) {
+    uint32_t least_sig_byte;
+    uint32_t wordAnd = 0x00FF;
+    least_sig_byte = word & wordAnd;
+    return least_sig_byte;
+}
+
+uint32_t get_most_sig_byte(uint32_t word) {
+    uint32_t most_sig_byte;
+    uint32_t wordAnd = 0xFF00;
+    most_sig_byte = word & wordAnd;
+    return most_sig_byte;
+}
+
 /***************************************************************/
 /*
  Helper Test Functions
@@ -651,8 +706,6 @@ void get_a_test(uint32_t instr) {
     
 }
 
-
-
 /***************************************************************/
 /*
  Opcode Functions
@@ -690,23 +743,68 @@ void and(){
     
 }
 
-void br(){
+void br(uint32_t instr){
     //check nzp bits
+    int instrN = check_n_bit(instr);
+    int instrZ = check_z_bit(instr);
+    int instrP = check_p_bit(instr);
+    uint32_t pcoffset9 = sext(9, get_pcoffset9(instr));
+    int latchesN = CURRENT_LATCHES.N;
+    int latchesZ = CURRENT_LATCHES.Z;
+    int latchesP = CURRENT_LATCHES.P;
+    if (instrN && latchesN) {
+        CURRENT_LATCHES.PC += pcoffset9;
+    } else if (instrZ && latchesZ) {
+        CURRENT_LATCHES.PC += pcoffset9;
+    } else if (instrP && latchesP) {
+        CURRENT_LATCHES.PC += pcoffset9;
+    }
+    return;
 }
 
-void jmp(){
-    
+void jmp(uint32_t instr){
+    uint32_t baseR = get_baseR(instr);
+    uint32_t newPC = CURRENT_LATCHES.REGS[baseR];
+    CURRENT_LATCHES.PC = newPC;
+    return;
 }
 
 void jsr(){
     
 }
 
-void ldb(){
-    
+void ldb(uint32_t instr){
+    uint32_t dr = get_dr1(instr);
+    uint32_t baseR = get_baseR(instr);
+    uint32_t baseRValue;
+    uint32_t boffset6 = get_boffset6(instr);
+    uint32_t memAddress;
+    int newDrValue;
+    int byteSelection;
+    baseRValue = CURRENT_LATCHES.REGS[baseR];
+    memAddress = baseRValue + sext(6, boffset6);
+    byteSelection = memAddress % 2;
+    newDrValue = MEMORY[memAddress / 2] [byteSelection];
+    CURRENT_LATCHES.REGS[dr] = newDrValue;
+    set_new_cc(newDrValue);
+    return;
 }
 
-void ldw(){
+void ldw(uint32_t instr){
+    uint32_t dr = get_dr1(instr);
+    uint32_t baseR = get_baseR(instr);
+    uint32_t baseRValue;
+    uint32_t boffset6 = get_boffset6(instr);
+    uint32_t memAddress;
+    int newDrValue;
+    baseRValue = CURRENT_LATCHES.REGS[baseR];
+    boffset6 = sext(6, boffset6);
+    boffset6 = boffset6 << 1;
+    memAddress = baseRValue + boffset6;
+    newDrValue = create_word(memAddress);
+    CURRENT_LATCHES.REGS[dr] = newDrValue;
+    set_new_cc(newDrValue);
+    return;
     
 }
 
@@ -714,20 +812,63 @@ void lea(){
     
 }
 
+void not(uint32_t instr) {
+    uint32_t dr = get_dr1(instr);
+    uint32_t sr1 = get_sr1(instr);
+    uint32_t sr1Value = CURRENT_LATCHES.REGS[sr1];
+    CURRENT_LATCHES.REGS[dr] = ~sr1Value;
+    return;
+}
+
 void rti(){
     
+}
+
+void ret() {
+    CURRENT_LATCHES.PC = CURRENT_LATCHES.REGS[7];
+    return;
 }
 
 void shf(){
     
 }
 
-void stb(){
-    
+void stb(uint32_t instr){
+    uint32_t sr = get_dr1(instr);
+    uint32_t srValue;
+    uint32_t leastSigByteSrValue;
+    uint32_t baseR = get_sr1(instr);
+    uint32_t baseRValue;
+    uint32_t boffset6 = get_boffset6(instr);
+    uint32_t memAddress;
+    boffset6 = sext(6, boffset6);
+    srValue = CURRENT_LATCHES.REGS[sr];
+    baseRValue = CURRENT_LATCHES.REGS[baseR];
+    memAddress = baseRValue + boffset6;
+    leastSigByteSrValue = get_least_sig_byte(srValue);
+    MEMORY[memAddress / 2] [0] = leastSigByteSrValue;
+    return;
 }
 
-void stw(){
-    
+void stw(uint32_t instr){
+    uint32_t sr = get_dr1(instr);
+    uint32_t srValue;
+    uint32_t leastSigByteSrValue;
+    uint32_t mostSigByteSrValue;
+    uint32_t baseR = get_baseR(instr);
+    uint32_t baseRValue;
+    uint32_t boffset6 = get_offset6(instr);
+    uint32_t memAddress;
+    boffset6 = sext(6, boffset6);
+    boffset6 = boffset6 << 1;
+    srValue = CURRENT_LATCHES.REGS[sr];
+    baseRValue = CURRENT_LATCHES.REGS[baseR];
+    memAddress = baseRValue + boffset6;
+    leastSigByteSrValue = get_least_sig_byte(srValue);
+    mostSigByteSrValue = get_most_sig_byte(srValue);
+    MEMORY[memAddress / 2] [0] = leastSigByteSrValue;
+    MEMORY[memAddress / 2] [1] = mostSigByteSrValue;
+    return;
 }
 
 void trap(){
@@ -802,15 +943,15 @@ void process_instruction(){
         case AND :
             and();
         case BR :
-            br();
+            br(instr);
         case JMP :
-            jmp();
+            jmp(instr);
         case JSR :
             jsr();
         case LDB :
-            ldb();
+            ldb(instr);
         case LDW :
-            ldw();
+            ldw(instr);
         case LEA :
             lea();
         case RTI :
@@ -818,9 +959,9 @@ void process_instruction(){
         case SHF :
             shf();
         case STB :
-            stb();
+            stb(instr);
         case STW :
-            stw();
+            stw(instr);
         case TRAP :
             trap();
         case XOR :
