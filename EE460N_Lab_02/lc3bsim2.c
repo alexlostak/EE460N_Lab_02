@@ -575,6 +575,7 @@ void set_new_cc(uint32_t newValue) {
     }
     return;
 }
+
 void update_next_latches(void) {
     int i;
     NEXT_LATCHES.N = CURRENT_LATCHES.N;
@@ -686,56 +687,133 @@ void add(uint32_t instr){
     return;
 }
 
-void and(){
+void and(uint32_t instr){
+    uint32_t isImmediate = get_a(instr);
+    uint32_t sr1;
+    uint32_t dr;
+    uint32_t drValue;
+    uint32_t sr1Value;
+    uint32_t operand2;
+    sr1 = get_sr1(instr);
+    sr1Value = CURRENT_LATCHES.REGS[sr1];
+    dr = get_dr1(instr);
+    if (isImmediate) {
+        operand2 = get_imm5(instr);
+        operand2 = sext(5, operand2);
+    } else {
+        operand2 = get_sr2(instr);
+        operand2 = CURRENT_LATCHES.REGS[operand2];
+    }
+    drValue = sr1Value & operand2;
+    CURRENT_LATCHES.REGS[dr] = drValue;
+    set_new_cc(drValue);
+}
+
+void br(uint32_t instr){
     
 }
 
-void br(){
+void jmp(uint32_t instr){
     
 }
 
-void jmp(){
+void jsr(uint32_t instr){
+    uint32_t useRegister = (instr >> 11) & 0x1;
+    uint32_t baseR;
+    uint32_t baseRvalue;
+    uint32_t offset;
+    CURRENT_LATCHES.REGS[7] = CURRENT_LATCHES.PC;
+    if (useRegister) {
+        baseR = get_baseR(instr);
+        baseRvalue = CURRENT_LATCHES.REGS[baseR];
+        CURRENT_LATCHES.PC = baseRvalue;
+        return;
+    } else {
+        offset = instr & 0x7FF;
+        offset = sext(11, offset);
+        offset *= 2;
+        CURRENT_LATCHES.PC += offset;
+        return;
+    }
+}
+
+void ldb(uint32_t instr){
     
 }
 
-void jsr(){
+void ldw(uint32_t instr){
     
 }
 
-void ldb(){
+void lea(uint32_t instr){
+    uint32_t offset;
+    uint32_t dr;
+    dr = get_dr1(instr);
+    offset = get_pcoffset9(instr);
+    offset = sext(9, offset);
+    CURRENT_LATCHES.REGS[dr] = CURRENT_LATCHES.PC + (offset*2);
+}
+
+void rti(uint32_t instr){
     
 }
 
-void ldw(){
+void shf(uint32_t instr){
+    uint32_t dr = get_dr1(instr);
+    uint32_t sr = get_sr1(instr);
+    uint32_t amount4 = instr & 0xF;
+    uint32_t typeOfShift = (instr >> 4) & 0x3;
+    uint32_t drValue;
+    uint32_t srValue;
+    srValue = CURRENT_LATCHES.REGS[dr];
+    if (typeOfShift == 0){              //LSHF
+        drValue = srValue << amount4;
+        CURRENT_LATCHES.REGS[dr] = drValue;
+    } else if (typeOfShift == 1) {      //RSHFL
+        drValue = srValue >> amount4;
+        CURRENT_LATCHES.REGS[dr] = drValue;
+    } else if (typeOfShift == 3) {      //RSHFA
+        drValue = srValue >> amount4;
+        drValue = sext(16 - amount4, drValue);
+        CURRENT_LATCHES.REGS[dr] = drValue;
+    }
+}
+
+void stb(uint32_t instr){
     
 }
 
-void lea(){
+void stw(uint32_t instr){
     
 }
 
-void rti(){
-    
-}
-
-void shf(){
-    
-}
-
-void stb(){
-    
-}
-
-void stw(){
-    
-}
-
-void trap(){
+void trap(uint32_t instr){
     NEXT_LATCHES.PC = 0;
 }
 
-void xor(){
-    
+void xor(uint32_t instr){
+    uint32_t isImmediate = get_a(instr);
+    uint32_t sr1;
+    uint32_t dr;
+    uint32_t drValue;
+    uint32_t sr1Value;
+    uint32_t operand2;
+    uint32_t x, y;
+    sr1 = get_sr1(instr);
+    sr1Value = CURRENT_LATCHES.REGS[sr1];
+    dr = get_dr1(instr);
+    if (isImmediate) {
+        operand2 = get_imm5(instr);
+        operand2 = sext(5, operand2);
+    } else {
+        operand2 = get_sr2(instr);
+        operand2 = CURRENT_LATCHES.REGS[operand2];
+    }
+    x = sr1Value;
+    y = operand2;
+    drValue = (x|y) & ~(x&y);      //should be XOR
+    CURRENT_LATCHES.REGS[dr] = drValue;
+    set_new_cc(drValue);
 }
 
 /***************************************************************/
@@ -772,7 +850,6 @@ void add_test(uint32_t instr) {
     print_current_latches();
     add(instr);
     print_next_latches();
-    
 }
 
 /***************************************************************/
@@ -795,37 +872,35 @@ void process_instruction(){
     uint16_t opCode = MEMORY[(pc)/2][1] >> 4;
     uint32_t instr = create_instr(pc);
     CURRENT_LATCHES.PC += 2;
-    
+    print_current_latches();
     switch(opCode) {
         case ADD :
             add(instr);
         case AND :
-            and();
+            and(instr);
         case BR :
-            br();
+            br(instr);
         case JMP :
-            jmp();
+            jmp(instr);
         case JSR :
-            jsr();
+            jsr(instr);
         case LDB :
-            ldb();
+            ldb(instr);
         case LDW :
-            ldw();
+            ldw(instr);
         case LEA :
-            lea();
-        case RTI :
-            rti();
+            lea(instr);
         case SHF :
-            shf();
+            shf(instr);
         case STB :
-            stb();
+            stb(instr);
         case STW :
-            stw();
+            stw(instr);
         case TRAP :
-            trap();
+            trap(instr);
         case XOR :
-            xor();
+            xor(instr);
     }
-    //copy over to next latch
+    print_next_latches();
     update_next_latches();
 }
