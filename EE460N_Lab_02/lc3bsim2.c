@@ -937,7 +937,14 @@ void stw(uint32_t instr){
 }
 
 void trap(uint32_t instr){
-    NEXT_LATCHES.PC = 0;
+    uint32_t trapvect8;
+    uint32_t newPc;
+    trapvect8 = get_trapvector8(instr);
+    trapvect8 = trapvect8 << 1;
+    newPc = create_word(trapvect8);
+    CURRENT_LATCHES.REGS[7] = CURRENT_LATCHES.PC;
+    CURRENT_LATCHES.PC = newPc;
+    return;
 }
 
 void xor(uint32_t instr){
