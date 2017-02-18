@@ -691,7 +691,7 @@ void and(){
 }
 
 void br(){
-    
+    //check nzp bits
 }
 
 void jmp(){
