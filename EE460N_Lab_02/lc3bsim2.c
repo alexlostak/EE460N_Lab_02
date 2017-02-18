@@ -443,7 +443,7 @@ int main(int argc, char *argv[]) {
 uint32_t sext(int bitlength, uint32_t num) {
     uint32_t sextNum;
     uint32_t sign;
-    uint16_t ffff;
+    uint32_t ffff;
     sextNum = 0;
     sign = num & (1 << (bitlength - 1));
     ffff = 0xFFFF;
@@ -453,6 +453,7 @@ uint32_t sext(int bitlength, uint32_t num) {
     } else {
         sextNum = num;
     }
+    sextNum = sextNum & 0xFFFF;
     return sextNum;
 }
 
@@ -747,9 +748,10 @@ void add(uint32_t instr){
         operand2Value = CURRENT_LATCHES.REGS[operand2];
     }
     drValue = sr1Value + operand2Value;
+    drValue = drValue & 0xFFFF;
+    printf("drValue(%d) = sr1Value(%d) + operand2Value(%d)\n", drValue, sr1Value, operand2Value);
     CURRENT_LATCHES.REGS[dr] = drValue;
     set_new_cc(drValue);
-    printf("printing pc in add = %x\n", CURRENT_LATCHES.PC);
     return;
 }
 
@@ -771,6 +773,7 @@ void and(uint32_t instr){
         operand2 = CURRENT_LATCHES.REGS[operand2];
     }
     drValue = sr1Value & operand2;
+    drValue = drValue & 0xFFFF;
     CURRENT_LATCHES.REGS[dr] = drValue;
     set_new_cc(drValue);
 }
@@ -968,6 +971,7 @@ void xor(uint32_t instr){
     x = sr1Value;
     y = operand2;
     drValue = (x|y) & ~(x&y);      //should be XOR
+    drValue = drValue & 0xFFFF;
     CURRENT_LATCHES.REGS[dr] = drValue;
     set_new_cc(drValue);
 }
@@ -1025,11 +1029,9 @@ void process_instruction(){
    */
     int pc = CURRENT_LATCHES.PC;
     uint32_t opCode = MEMORY[(pc)/2][1] >> 4;
-    printf("MEMORY[(pc)/2][1] = %d\n", MEMORY[(pc)/2][1]);
     uint32_t instr = create_instr(pc);
     print_current_latches();
     CURRENT_LATCHES.PC += 2;
-    printf("opCode is %d\n", opCode);
     switch(opCode) {
         case ADD :
             printf("case add\n");
