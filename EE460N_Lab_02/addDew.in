@@ -1,0 +1,7 @@
+.ORIG x3000
+ADD R0, R1, #8
+ADD R0, R0, R0
+ADD R0, R0, R0
+ADD R0, R0, #-1
+TRAP x23
+.end 

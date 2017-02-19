@@ -1,0 +1,9 @@
+.ORIG x3000
+AND R0, R0, #0
+ADD R0, R0, xB
+AND R0, R0, xF
+AND R1, R0, #3
+AND R0, R0, R1
+AND R0, R0, #-1
+TRAP x23
+.end
