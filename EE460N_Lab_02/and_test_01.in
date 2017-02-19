@@ -1,0 +1,5 @@
+.ORIG X4000
+AND R0, R1, #5;
+AND R2, R0, R0;
+TRAP x23
+.end 
