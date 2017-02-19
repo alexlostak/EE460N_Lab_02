@@ -575,6 +575,7 @@ void set_new_cc(uint32_t newValue) {
         CURRENT_LATCHES.N = 0;
         CURRENT_LATCHES.Z = 1;
         CURRENT_LATCHES.P = 0;
+        return;
     }
     result = newValue & mostSigBitAnd;
     if (result) {
