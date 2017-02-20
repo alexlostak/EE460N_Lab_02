@@ -18,6 +18,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdint.h>
 
 /***************************************************************/
 /*                                                             */
@@ -776,7 +777,6 @@ void and(uint32_t instr){
 }
 
 void br(uint32_t instr){
-    //check nzp bits
     int instrN = check_n_bit(instr);
     int instrZ = check_z_bit(instr);
     int instrP = check_p_bit(instr);
