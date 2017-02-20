@@ -1,0 +1,18 @@
+.ORIG x3000
+LEA R0, label1		;RO = label1
+LDB R1, R0, #0		;R1 = CD
+LDB R2, R0, #1		;R2 = AB
+LEA R4, label2		;R4 = label2
+STB R1, R4, #1		;label2 = xCD00
+STB R2, R4, #0		;label2 = xCDAB
+LDW R3, R4, #0		;R3 = xCDAB
+STW R3, RO, #0		;label1 = xCDAB
+LDW R5, R4, #-1		;R5 = xABCD
+TRAP x23
+
+label1 	.FILL xABCD
+label2	.BLKW
+label3	.BLKW
+
+.end
+

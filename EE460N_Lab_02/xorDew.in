@@ -3,6 +3,7 @@ AND R0, R0, #0
 ADD R0, R0, xF
 XOR R1, R0, #5
 XOR R0, R0, R1
-XOR R0, R0, x-10
+XOR R0, R0, xf
+NOT R3, R0
 TRAP x23
 .end

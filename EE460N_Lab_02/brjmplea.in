@@ -1,0 +1,22 @@
+.ORIG x3000
+LEA R0, LABEL1
+LEA R1, subroutine
+jsrr R1
+add r6, r6, xC
+
+TRAP x23
+
+subroutine LDW R1, R0, #0		;R1 = x1111
+LSHF R2, R1, #3					;R2 = x8888
+RSHFL R3, R1, #1				;R3 = x0888	
+RSHFA R4, R1, #1				;R4 = x0888
+NOT R1, r1						;R1 = xeeee
+RSHFA R5, R1, #2				;R5 = xfbbb
+RET
+
+label1 	.FILL x1111
+label2	.BLKW
+label3	.BLKW
+
+.end
+

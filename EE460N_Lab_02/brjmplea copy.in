@@ -1,0 +1,15 @@
+.ORIG x3000
+AND R0, R0, #0
+ADD R0, R0, #5
+hello ADD R0, R0, #-1
+BRP hello
+
+
+TRAP x23
+
+label1 	.FILL xABCD
+label2	.BLKW
+label3	.BLKW
+
+.end
+

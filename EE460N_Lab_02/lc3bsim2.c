@@ -1,13 +1,9 @@
 /*
-    Remove all unnecessary lines (including this one) 
-    in this comment.
-    REFER TO THE SUBMISSION INSTRUCTION FOR DETAILS
-
-    Name 1: Full name of the first partner 
-    Name 2: Full name of the second partner
-    UTEID 1: UT EID of the first partner
-    UTEID 2: UT EID of the second partner
-*/
+	Name 1: Dewayne Perry
+	Name 2: Alexander Lostak
+	UTEID 1: dwp673
+	UTEID 2: ajl3287
+ */
 
 /***************************************************************/
 /*                                                             */
@@ -785,15 +781,30 @@ void br(uint32_t instr){
     int instrZ = check_z_bit(instr);
     int instrP = check_p_bit(instr);
     uint32_t pcoffset9 = sext(9, get_pcoffset9(instr));
+    pcoffset9 = pcoffset9 << 1;
+    printf("branch pcoffset 9 is %d\n", pcoffset9);
     int latchesN = CURRENT_LATCHES.N;
     int latchesZ = CURRENT_LATCHES.Z;
     int latchesP = CURRENT_LATCHES.P;
+    uint32_t tempAddress;
+    if ((instrN == 0) && (instrZ == 0) && (instrP == 0)) {
+        tempAddress = CURRENT_LATCHES.PC + pcoffset9;
+        tempAddress = tempAddress & 0xFFFF;
+        CURRENT_LATCHES.PC = tempAddress;
+        return;
+    }
     if (instrN && latchesN) {
-        CURRENT_LATCHES.PC += pcoffset9;
+        tempAddress = CURRENT_LATCHES.PC + pcoffset9;
+        tempAddress = tempAddress & 0xFFFF;
+        CURRENT_LATCHES.PC = tempAddress;
     } else if (instrZ && latchesZ) {
-        CURRENT_LATCHES.PC += pcoffset9;
+        tempAddress = CURRENT_LATCHES.PC + pcoffset9;
+        tempAddress = tempAddress & 0xFFFF;
+        CURRENT_LATCHES.PC = tempAddress;
     } else if (instrP && latchesP) {
-        CURRENT_LATCHES.PC += pcoffset9;
+        tempAddress = CURRENT_LATCHES.PC + pcoffset9;
+        tempAddress = tempAddress & 0xFFFF;
+        CURRENT_LATCHES.PC = tempAddress;
     }
     return;
 }
@@ -806,23 +817,23 @@ void jmp(uint32_t instr){
 }
 
 void jsr(uint32_t instr){
-    uint32_t useRegister = (instr >> 11) & 0x1;
+    uint32_t useLabel = (instr >> 11) & 0x1;
     uint32_t baseR;
     uint32_t baseRvalue;
     uint32_t offset;
-    CURRENT_LATCHES.REGS[7] = CURRENT_LATCHES.PC;
-    if (useRegister) {
+    uint32_t soCalledTemp;
+    soCalledTemp = CURRENT_LATCHES.PC;
+    if (!useLabel) {
         baseR = get_baseR(instr);
         baseRvalue = CURRENT_LATCHES.REGS[baseR];
         CURRENT_LATCHES.PC = baseRvalue;
-        return;
     } else {
         offset = instr & 0x7FF;
         offset = sext(11, offset);
         offset *= 2;
         CURRENT_LATCHES.PC += offset;
-        return;
     }
+    CURRENT_LATCHES.REGS[7] = soCalledTemp;
 }
 
 void ldb(uint32_t instr){
@@ -835,6 +846,7 @@ void ldb(uint32_t instr){
     int byteSelection;
     baseRValue = CURRENT_LATCHES.REGS[baseR];
     memAddress = baseRValue + sext(6, boffset6);
+    memAddress = memAddress & 0xFFFF;
     byteSelection = memAddress % 2;
     newDrValue = MEMORY[memAddress / 2] [byteSelection];
     CURRENT_LATCHES.REGS[dr] = newDrValue;
@@ -853,6 +865,7 @@ void ldw(uint32_t instr){
     boffset6 = sext(6, boffset6);
     boffset6 = boffset6 << 1;
     memAddress = baseRValue + boffset6;
+    memAddress = memAddress & 0xFFFF;
     newDrValue = create_word(memAddress);
     CURRENT_LATCHES.REGS[dr] = newDrValue;
     set_new_cc(newDrValue);
@@ -865,7 +878,7 @@ void lea(uint32_t instr){
     dr = get_dr1(instr);
     offset = get_pcoffset9(instr);
     offset = sext(9, offset);
-    CURRENT_LATCHES.REGS[dr] = CURRENT_LATCHES.PC + (offset*2);
+    CURRENT_LATCHES.REGS[dr] = (CURRENT_LATCHES.PC + (offset*2)) & 0xFFFF;
 }
 
 void shf(uint32_t instr){
@@ -910,12 +923,15 @@ void stb(uint32_t instr){
     uint32_t baseRValue;
     uint32_t boffset6 = get_boffset6(instr);
     uint32_t memAddress;
+    uint32_t byteSelection;
     boffset6 = sext(6, boffset6);
     srValue = CURRENT_LATCHES.REGS[sr];
     baseRValue = CURRENT_LATCHES.REGS[baseR];
     memAddress = baseRValue + boffset6;
+    memAddress = memAddress & 0xFFFF;
     leastSigByteSrValue = get_least_sig_byte(srValue);
-    MEMORY[memAddress / 2] [0] = leastSigByteSrValue;
+    byteSelection = memAddress % 2;
+    MEMORY[memAddress / 2] [byteSelection] = leastSigByteSrValue;
     return;
 }
 
@@ -933,6 +949,7 @@ void stw(uint32_t instr){
     srValue = CURRENT_LATCHES.REGS[sr];
     baseRValue = CURRENT_LATCHES.REGS[baseR];
     memAddress = baseRValue + boffset6;
+    memAddress = memAddress & 0xFFFF;
     leastSigByteSrValue = get_least_sig_byte(srValue);
     mostSigByteSrValue = get_most_sig_byte(srValue);
     MEMORY[memAddress / 2] [0] = leastSigByteSrValue;
@@ -996,14 +1013,14 @@ void print_latches(void) {
 }
 
 void print_current_latches(void) {
-    printf("-----Current Latch----\n");
+    printf("*****Current Latch******\n");
     print_latches();
 }
 
 void print_next_latches(void) {
     printf("-----Next Latch----\n");
     print_latches();
-    printf("----------------------\n\n");
+    printf("\n\n");
 }
 
 void add_test(uint32_t instr) {
@@ -1087,6 +1104,6 @@ void process_instruction(){
             xor(instr);
             break;
     }
-    print_next_latches();
+    
     update_next_latches();
 }
